@@ -2,6 +2,7 @@ package uctech.Unimed.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uctech.Unimed.service.UnimedService;
 
@@ -12,7 +13,7 @@ public class UnimedController {
     private UnimedService unimedService;
 
     @GetMapping("/opcao")
-    public void selecionarOpcao() {
-        unimedService.selecionarOpcao();
+    public String selecionarOpcao(@RequestParam Integer opc) {
+        return unimedService.selecionarOpcao(opc);
     }
 }
