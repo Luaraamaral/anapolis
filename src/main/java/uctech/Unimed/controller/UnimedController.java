@@ -41,12 +41,6 @@ public class UnimedController {
         return ResponseEntity.ok(cpf1);
     }
 
-    @ApiOperation(nickname = "selecionarOpcao", value = "Retorna mensagem atrelada a opção selecionada")
-    @GetMapping("/opcao")
-    public String selecionarOpcao(@RequestParam Integer opc) {
-        return unimedService.selecionarOpcao(opc);
-    }
-
     @ApiOperation(nickname = "findByGuia", value = "Busca status da guia na base de dados")
     @GetMapping("/guia")
     public ResponseEntity<GuiaResponseDTO> findByGuia(@RequestParam("numero") String numero) {
