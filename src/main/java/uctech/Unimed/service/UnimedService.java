@@ -6,19 +6,17 @@ import uctech.Unimed.domain.Carteirinha;
 import uctech.Unimed.domain.Cpf;
 import uctech.Unimed.domain.Email;
 import uctech.Unimed.domain.Guia;
-import uctech.Unimed.dtos.CarteirinhaResponseDTO;
-import uctech.Unimed.dtos.CpfResponseDTO;
-import uctech.Unimed.dtos.EmailResponseDTO;
-import uctech.Unimed.dtos.GuiaResponseDTO;
-import uctech.Unimed.repository.CarteirinhaRepository;
-import uctech.Unimed.repository.CpfRepository;
-import uctech.Unimed.repository.EmailRepository;
-import uctech.Unimed.repository.GuiaRepository;
+import uctech.Unimed.dtos.*;
+import uctech.Unimed.repository.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UnimedService {
+
+    @Autowired
+    private DBConection dbConection;
 
     @Autowired
     private CpfRepository cpfRepository;
@@ -62,6 +60,10 @@ public class UnimedService {
             return new EmailResponseDTO(email1.get());
         }
         return null;
+    }
+
+    public List<BeneficiarioDTO> getBeneficiarioByCpfOrCarteirinha(String cpfOrCard) {
+        return dbConection.getBeneficiarioByCpfOrCarteirinha(cpfOrCard);
     }
 
 }

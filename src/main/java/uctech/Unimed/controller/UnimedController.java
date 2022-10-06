@@ -6,16 +6,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uctech.Unimed.dtos.CarteirinhaResponseDTO;
-import uctech.Unimed.dtos.CpfResponseDTO;
-import uctech.Unimed.dtos.EmailResponseDTO;
-import uctech.Unimed.dtos.GuiaResponseDTO;
+import uctech.Unimed.dtos.*;
+import uctech.Unimed.repository.DBConection;
 import uctech.Unimed.service.UnimedService;
 
+import java.util.List;
 import java.util.Objects;
 
 @RestController
 public class UnimedController {
+
+    @Autowired
+    private DBConection dbConection;
 
     @Autowired
     private UnimedService unimedService;
@@ -60,6 +62,11 @@ public class UnimedController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(email1);
+    }
+
+    @GetMapping("/findBy")
+    public ResponseEntity<List<BeneficiarioDTO>> findBy(@RequestParam("cpfOrCard") String cpfOrCard) {
+        return ResponseEntity.ok(unimedService.getBeneficiarioByCpfOrCarteirinha(cpfOrCard));
     }
 
 }
