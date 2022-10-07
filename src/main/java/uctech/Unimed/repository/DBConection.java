@@ -1,16 +1,22 @@
 package uctech.Unimed.repository;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.util.ObjectUtils;
 import uctech.Unimed.dtos.BeneficiarioDTO;
+import uctech.Unimed.dtos.BoletoDTO;
+import uctech.Unimed.dtos.GuiaDTO;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class DBConection {
@@ -21,11 +27,11 @@ public class DBConection {
     public List<BeneficiarioDTO> getBeneficiarioByCpfOrCarteirinha(String cpfOrCarteirinha) {
         String whereClause = "";
         if (cpfOrCarteirinha.length() > 11) {
-           whereClause = whereClause.concat("and dbaunimed.f_formata_cartao_dig_num(b.uni_cod_respon," +
+            whereClause = whereClause.concat("and dbaunimed.f_formata_cartao_dig_num(b.uni_cod_respon," +
                     "       b.bnf_cod_cntrat_cart," +
                     "       b.bnf_cod, b.bnf_cod_depnte) = '").concat(cpfOrCarteirinha).concat("'");
         } else {
-           whereClause = whereClause.concat("and trim(pd.doc_nro) = '").concat(cpfOrCarteirinha).concat("'");
+            whereClause = whereClause.concat("and trim(pd.doc_nro) = '").concat(cpfOrCarteirinha).concat("'");
         }
 
 
@@ -55,8 +61,6 @@ public class DBConection {
 
         List<Object[]> rows = query.getResultList();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
         List<BeneficiarioDTO> list = new ArrayList<>();
 
         for (Object[] obj : rows) {
@@ -65,9 +69,9 @@ public class DBConection {
                     (String) obj[1],
                     (String) obj[2],
                     (String) obj[3],
-                    (Date) obj[4],
-                    (Date) obj[5],
-                    (Date) obj[6],
+                    formataDate(obj[4]),
+                    formataDate(obj[5]),
+                    formataDate(obj[6]),
                     (String) obj[7],
                     (String) obj[8],
                     (String) obj[9]
@@ -76,5 +80,64 @@ public class DBConection {
 
         return list;
     }
+
+    private LocalDate formataDate(Object o) {
+        if (!Objects.isNull(o)) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            return LocalDate.parse(sdf.format((Date) o), formatter);
+        }
+        return null;
+    }
+
+    public List<BoletoDTO> getBoletosAbertos(String cartao) {
+
+        Query query = entityManager.createNativeQuery("select b.competencia_segunda_via, b.vencimento_segunda_via, b.valor_segunda_via, b.codigo_barras" +
+                "  from dbaunimed.vm_mobile_fatura b " +
+                "  where b.usuario_cartao = '" + cartao + "'" +
+                "  and b.valor_pago = '0.00'" +
+                "  order by b.vencimento_segunda_via desc");
+
+        List<Object[]> rows = query.getResultList();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        List<BoletoDTO> list = new ArrayList<>();
+
+
+        for (Object[] obj : rows) {
+            list.add(new BoletoDTO(
+                    (BigDecimal) obj[0],
+                    (String) obj[1],
+                    (String) obj[2],
+                    (String) obj[3]
+            ));
+        }
+
+        return list;
+    }
+
+    public GuiaDTO getStatusGuia(String numeroGuia) {
+        Query query = entityManager.createNativeQuery("   select aut.nr_guia NUMERO_GUIA," +
+                "       DECODE(aut.cd_situacao," +
+                "              1,'Negada'," +
+                "              2,'Aprovada'," +
+                "              3,'Em estudo'," +
+                "              4,'Cancelada'," +
+                "              5,'Executada'," +
+                "              6,'Aguardando Cancelamento') STATUS_GUIA" +
+                "  from datacenter.autsc2_solicitacoes aut" +
+                "  where aut.nr_guia = '" + numeroGuia + "'");
+
+        Object[] row = (Object[]) query.getSingleResult();
+
+        if (ObjectUtils.isEmpty(row)) {
+            return null;
+        }
+
+
+        return new GuiaDTO((String) row[0], (String) row[1]);
+    }
+
 
 }
