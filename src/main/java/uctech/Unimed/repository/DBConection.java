@@ -2,9 +2,7 @@ package uctech.Unimed.repository;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.util.ObjectUtils;
-import uctech.Unimed.dtos.BeneficiarioDTO;
-import uctech.Unimed.dtos.BoletoDTO;
-import uctech.Unimed.dtos.GuiaDTO;
+import uctech.Unimed.dtos.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -90,7 +88,63 @@ public class DBConection {
         return null;
     }
 
-    public List<BoletoDTO> getBoletosAbertos(String cartao) {
+    public BeneficiarioCartaoDTO getBeneficiarioBoleto(String cartao) {
+
+        Query query = entityManager.createNativeQuery("select dbenef.cartao," +
+                " dbenef.nome_completo," +
+                " dbenef.grau_dependencia," +
+                " dbenef.tipo_contrato," +
+                " (select cpf from dbaunimed.v_ud178_dados_beneficiario where cartao = dbenef.cartao_titular), " +
+                " dbenef.cartao_titular " +
+                " from dbaunimed.v_ud178_dados_beneficiario dbenef" +
+                " where 1=1" +
+                " and tipo_contrato = 'PF'" +
+                " and cartao = '" + cartao + "'");
+
+        Object[] row = (Object[]) query.getSingleResult();
+
+        if (ObjectUtils.isEmpty(row)) {
+            return null;
+        }
+
+        return new BeneficiarioCartaoDTO((String) row[0], (String) row[1], (String) row[2], (String) row[3], (String) row[4], (String) row[5]);
+    }
+
+    public Integer getBoletosAtrasadosApartir60Dias(String cartao) {
+
+        Query query = entityManager.createNativeQuery("select COUNT(*) " +
+                "       from dbaunimed.v_ud178_mobile_fatura mf " +
+                "       where mf.usuario_cartao = '" + cartao + "'" +
+                "       and (trunc(current_date) - mf.VENCIMENTO_SEGUNDA_VIA) > 59" +
+                "       and mf.valor_pago = '0.00'");
+
+        return (Integer) query.getSingleResult();
+    }
+
+    public BoletoPathDTO getDadosBoletoPendente(String cartaoTitular) {
+
+        Query query = entityManager.createNativeQuery("select d.PRCPD_DES_DIR_REDE, d.PRCPD_DES_CAMINH " +
+                " from dbaunimed.prcsso_param_doc d " +
+                "inner join dbaunimed.prcsso_param_fatura_rec f " +
+                " on f.prcp_cod = d.prcp_cod " +
+                "where 1=1 " +
+                " and d.prcpd_des_dir_oracle = 'DIR_REL' " +
+                " and d.prcpd_des like ('%CAPA FATURA CONTRA TITULAR%') " +
+                " and f.fr_nro = (select FR_NRO " +
+                " from dbaunimed.v_ud178_mobile_fatura " +
+                " where usuario_cartao = '" + cartaoTitular + "' " +
+                "      and FR_SITUACAO = 'Pendente' " +
+                "      and VALOR_PAGO = '0.00') " +
+                "order by 2 desc");
+
+        Object[] row = (Object[]) query.getSingleResult();
+
+        return new BoletoPathDTO((String) row[0], (String) row[1]);
+
+    }
+
+
+    public List<BoletoDTO> getBoletosAbertosAtrasados(String cartao) {
 
         Query query = entityManager.createNativeQuery("select b.competencia_segunda_via, b.vencimento_segunda_via, b.valor_segunda_via, b.codigo_barras" +
                 "  from dbaunimed.vm_mobile_fatura b " +
@@ -139,5 +193,39 @@ public class DBConection {
         return new GuiaDTO((String) row[0], (String) row[1]);
     }
 
+    public List<EmailDTO> getEmailByCpf(String cpf) {
 
+        Query query = entityManager.createNativeQuery("select distinct " +
+                "       dbaunimed.f_formata_cartao_dig_num(b.uni_cod_respon,b.bnf_cod_cntrat_cart,b.bnf_cod,b.bnf_cod_depnte) AS cartao_benef," +
+                "       pe.pes_nom_comp NOME," +
+                "       dbaunimed.f_format_cnpj_cpf('CPF',dbaunimed.f_busca_doc_pessoa(pe.pes_cod,'CPF')) cpf," +
+                "       nvl(lower(pec.CON_DES_EMAIL),'Nenhum e-mail cadastrado') EMAIL," +
+                "       nvl(lower(pec.con_des_email_altern),'Nenhum e-mail cadastrado') EMAIL_ALTERNATIVO   " +
+                "             " +
+                "  from dbaunimed.pessoa               pe," +
+                "       dbaunimed.bnfrio               b," +
+                "       dbaunimed.pessoa_end_contat    pec" +
+                " where pec.pes_cod = pe.pes_cod" +
+                "       and pec.pes_cod = b.bnf_cod_pessoa " +
+                "       and pec.end_ind = 1" +
+                "       and dbaunimed.f_busca_doc_pessoa(pe.pes_cod,'CPF') = '"+cpf+"'");
+
+
+        List<Object[]> rows = query.getResultList();
+
+        List<EmailDTO> list = new ArrayList<>();
+
+        for (Object[] obj : rows) {
+            list.add(new EmailDTO(
+                    (String) obj[0],
+                    (String) obj[1],
+                    (String) obj[2],
+                    (String) obj[3],
+                    (String) obj[4]
+
+            ));
+        }
+
+        return list;
+    }
 }

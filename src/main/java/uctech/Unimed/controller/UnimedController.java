@@ -8,11 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uctech.Unimed.dtos.BeneficiarioDTO;
-import uctech.Unimed.dtos.BoletoDTO;
+import uctech.Unimed.dtos.EmailDTO;
 import uctech.Unimed.dtos.GuiaDTO;
 import uctech.Unimed.repository.DBConection;
 import uctech.Unimed.service.UnimedService;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @RestController
@@ -34,12 +35,13 @@ public class UnimedController {
     }
 
     @GetMapping("/getBoletosAbertos")
-    public ResponseEntity<List<BoletoDTO>> getBoletosAbertos(@RequestParam("cartao") String cartao) {
-        List<BoletoDTO> boleto = unimedService.getBoletosAbertos(cartao);
-        if (ObjectUtils.isEmpty(boleto)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(boleto);
+    public void getBoletosAbertos(@RequestParam("cartao") String cartao, @RequestParam(value = "cpf", required = false) String cpf, HttpServletResponse response) throws Exception {
+
+        response.addHeader("Content-Type", "application/force-download");
+        response.addHeader("Content-Disposition", "attachment; filename=\"boleto.pdf\"");
+
+        unimedService.getBoletosAbertos(cartao, cpf, response);
+
     }
 
     @GetMapping("/getStatusGuia")
@@ -51,5 +53,21 @@ public class UnimedController {
         return ResponseEntity.ok(guiaDTO);
     }
 
+//    @GetMapping("/getPDF")
+//    public void downloadPDFReport(HttpServletResponse response) throws IOException {
+//        response.addHeader("Content-Type", "application/force-download");
+//        response.addHeader("Content-Disposition", "attachment; filename=\"boleto.pdf\"");
+//
+//        unimedService.buscaPdfBaseSamba("01787580010506007", response);
+//    }
+
+    @GetMapping("/getEmail")
+    public ResponseEntity<List<EmailDTO>> getEmailByCpf(@RequestParam("cpf") String cpf) {
+        List<EmailDTO> emailDTO = unimedService.getEmailByCpf(cpf);
+        if (ObjectUtils.isEmpty(emailDTO)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(emailDTO);
+    }
 
 }
