@@ -3,6 +3,7 @@ package uctech.Unimed.repository;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.ObjectUtils;
 import uctech.Unimed.dtos.*;
+import uctech.Unimed.exception.DataNotFoundException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -88,7 +89,7 @@ public class DBConection {
         return null;
     }
 
-    public BeneficiarioCartaoDTO getBeneficiarioBoleto(String cartao) {
+    public BeneficiarioCartaoDTO getBeneficiarioBoleto(String cartao) throws DataNotFoundException {
 
         Query query = entityManager.createNativeQuery("select dbenef.cartao," +
                 " dbenef.nome_completo," +
@@ -99,18 +100,18 @@ public class DBConection {
                 " from dbaunimed.v_ud178_dados_beneficiario dbenef" +
                 " where 1=1" +
                 " and tipo_contrato = 'PF'" +
-                " and cartao = '" + cartao + "'");
+                " and cartao = '" + cartao.trim() + "'");
 
-        Object[] row = (Object[]) query.getSingleResult();
+        try {
+            Object[] row = (Object[]) query.getSingleResult();
+            return new BeneficiarioCartaoDTO((String) row[0], (String) row[1], (String) row[2], (String) row[3], (String) row[4], (String) row[5]);
 
-        if (ObjectUtils.isEmpty(row)) {
-            return null;
+        } catch (Exception e) {
+            throw new DataNotFoundException("Beneficiário não encontrado");
         }
-
-        return new BeneficiarioCartaoDTO((String) row[0], (String) row[1], (String) row[2], (String) row[3], (String) row[4], (String) row[5]);
     }
 
-    public Integer getBoletosAtrasadosApartir60Dias(String cartao) {
+    public BigDecimal getBoletosAtrasadosApartir60Dias(String cartao) {
 
         Query query = entityManager.createNativeQuery("select COUNT(*) " +
                 "       from dbaunimed.v_ud178_mobile_fatura mf " +
@@ -118,10 +119,10 @@ public class DBConection {
                 "       and (trunc(current_date) - mf.VENCIMENTO_SEGUNDA_VIA) > 59" +
                 "       and mf.valor_pago = '0.00'");
 
-        return (Integer) query.getSingleResult();
+        return (BigDecimal) query.getSingleResult();
     }
 
-    public BoletoPathDTO getDadosBoletoPendente(String cartaoTitular) {
+    public BoletoPathDTO getDadosBoletoPendente(String cartaoTitular) throws DataNotFoundException {
 
         Query query = entityManager.createNativeQuery("select d.PRCPD_DES_DIR_REDE, d.PRCPD_DES_CAMINH " +
                 " from dbaunimed.prcsso_param_doc d " +
@@ -137,9 +138,14 @@ public class DBConection {
                 "      and VALOR_PAGO = '0.00') " +
                 "order by 2 desc");
 
-        Object[] row = (Object[]) query.getSingleResult();
+        try {
+            Object[] row = (Object[]) query.getSingleResult();
+            return new BoletoPathDTO((String) row[0], (String) row[1]);
 
-        return new BoletoPathDTO((String) row[0], (String) row[1]);
+        } catch (Exception e) {
+            throw new DataNotFoundException("Boleto não encontrado");
+        }
+
 
     }
 
@@ -208,7 +214,7 @@ public class DBConection {
                 " where pec.pes_cod = pe.pes_cod" +
                 "       and pec.pes_cod = b.bnf_cod_pessoa " +
                 "       and pec.end_ind = 1" +
-                "       and dbaunimed.f_busca_doc_pessoa(pe.pes_cod,'CPF') = '"+cpf+"'");
+                "       and dbaunimed.f_busca_doc_pessoa(pe.pes_cod,'CPF') = '" + cpf + "'");
 
 
         List<Object[]> rows = query.getResultList();

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import uctech.Unimed.dtos.*;
+import uctech.Unimed.exception.DataNotFoundException;
 import uctech.Unimed.repository.DBConection;
 
 import javax.servlet.http.HttpServletResponse;
@@ -15,7 +16,7 @@ import java.util.List;
 @Service
 public class UnimedService {
 
-    private static final String PATH_SERVER = "file:///X:/0001466183-1.PDF";
+    private static final String PATH_SERVER = "X:/0001509039-1.PDF";
     @Autowired
     private DBConection dbConection;
 
@@ -23,27 +24,27 @@ public class UnimedService {
         return dbConection.getBeneficiarioByCpfOrCarteirinha(cpfOrCard);
     }
 
-    public void getBoletosAbertos(String cartao, String cpfTitular, HttpServletResponse response) throws Exception {
+    public void getBoletosAbertos(String cartao, String cpfTitular, HttpServletResponse response) throws DataNotFoundException, IOException {
 
         BeneficiarioCartaoDTO beneficiarioCartaoDTO = dbConection.getBeneficiarioBoleto(cartao);
 
         if ("TITULAR".equals(beneficiarioCartaoDTO.getGrauDependencia().toUpperCase())) {
-            if (dbConection.getBoletosAtrasadosApartir60Dias(cartao) == 0) {
+            if (dbConection.getBoletosAtrasadosApartir60Dias(cartao).intValue() == 0) {
                 buscaPdfBaseSamba(cartao, response);
             } else {
-                throw new Exception("Além de 60 dias");
+                throw new DataNotFoundException("Boleto atrasado a mais de 60 dias");
             }
         } else {
             if (ObjectUtils.isEmpty(cpfTitular) ||
-                    (!ObjectUtils.isEmpty(cpfTitular) && !cpfTitular.equals(beneficiarioCartaoDTO.getCpfTitular()))) {
-                throw new Exception("Você não é o titular do contrato, informe o CPF do titular para continuar!");
+                    (!ObjectUtils.isEmpty(cpfTitular) && !ObjectUtils.isEmpty(beneficiarioCartaoDTO.getCpfTitular()) && !cpfTitular.equals(beneficiarioCartaoDTO.getCpfTitular()))) {
+                throw new DataNotFoundException("Você não é o titular do contrato, informe o CPF do titular para continuar!");
             } else {
                 buscaPdfBaseSamba(cartao, response);
             }
         }
     }
 
-    public void buscaPdfBaseSamba(String cartaoTitular, HttpServletResponse response) throws IOException {
+    public void buscaPdfBaseSamba(String cartaoTitular, HttpServletResponse response) throws IOException, DataNotFoundException {
 
         BoletoPathDTO boletoPath = dbConection.getDadosBoletoPendente(cartaoTitular);
 
@@ -59,6 +60,9 @@ public class UnimedService {
             while (document.getNumberOfPages() != 1) {
                 document.removePage(1);
             }
+
+            response.addHeader("Content-Type", "application/force-download");
+            response.addHeader("Content-Disposition", "attachment; filename=\"boleto.pdf\"");
 
             document.save(response.getOutputStream());
         }

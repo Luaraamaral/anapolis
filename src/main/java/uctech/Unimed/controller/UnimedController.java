@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 import uctech.Unimed.dtos.BeneficiarioDTO;
 import uctech.Unimed.dtos.EmailDTO;
 import uctech.Unimed.dtos.GuiaDTO;
+import uctech.Unimed.exception.DataNotFoundException;
 import uctech.Unimed.repository.DBConection;
 import uctech.Unimed.service.UnimedService;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -35,13 +37,11 @@ public class UnimedController {
     }
 
     @GetMapping("/getBoletosAbertos")
-    public void getBoletosAbertos(@RequestParam("cartao") String cartao, @RequestParam(value = "cpf", required = false) String cpf, HttpServletResponse response) throws Exception {
-
-        response.addHeader("Content-Type", "application/force-download");
-        response.addHeader("Content-Disposition", "attachment; filename=\"boleto.pdf\"");
+    public ResponseEntity<?> getBoletosAbertos(@RequestParam("cartao") String cartao, @RequestParam(value = "cpf", required = false) String cpf, HttpServletResponse response) throws DataNotFoundException, IOException {
 
         unimedService.getBoletosAbertos(cartao, cpf, response);
 
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/getStatusGuia")
