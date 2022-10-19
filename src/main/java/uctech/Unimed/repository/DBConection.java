@@ -149,31 +149,19 @@ public class DBConection {
     }
 
 
-    public List<BoletoDTO> getBoletosAbertosAtrasados(String cartao) {
+    public List<BoletoDTO> getCodigoDeBarras(String cartao) {
 
-        Query query = entityManager.createNativeQuery("select b.competencia_segunda_via, b.vencimento_segunda_via, b.valor_segunda_via, b.codigo_barras" +
-                "  from dbaunimed.vm_mobile_fatura b " +
-                "  where b.usuario_cartao = '" + cartao + "'" +
-                "  and b.valor_pago = '0.00'" +
-                "  order by b.vencimento_segunda_via desc");
-
-        List<Object[]> rows = query.getResultList();
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        List<BoletoDTO> list = new ArrayList<>();
+        Query query = entityManager.createNativeQuery("select usuario_cartao," +
+                "       competencia_segunda_via," +
+                "       vencimento_segunda_via," +
+                "       codigo_barras" +
+                " FROM dbaunimed.v_ud178_mobile_fatura mf" +
+                " WHERE mf.usuario_cartao = '"+cartao+"'" +
+                "  AND (trunc(CURRENT_DATE) - mf.VENCIMENTO_SEGUNDA_VIA) < 59" +
+                "  AND mf.valor_pago = '0.00'");
 
 
-        for (Object[] obj : rows) {
-            list.add(new BoletoDTO(
-                    (BigDecimal) obj[0],
-                    (String) obj[1],
-                    (String) obj[2],
-                    (String) obj[3]
-            ));
-        }
-
-        return list;
+        return query.getResultList();
     }
 
     public GuiaDTO getStatusGuia(String numeroGuia) {

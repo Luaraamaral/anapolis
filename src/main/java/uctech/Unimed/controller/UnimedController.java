@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uctech.Unimed.dtos.BeneficiarioDTO;
+import uctech.Unimed.dtos.BoletoDTO;
 import uctech.Unimed.dtos.EmailDTO;
 import uctech.Unimed.dtos.GuiaDTO;
 import uctech.Unimed.exception.DataNotFoundException;
@@ -61,5 +62,17 @@ public class UnimedController {
         }
         return ResponseEntity.ok(emailDTO);
     }
+
+
+    @GetMapping("/getCodigoDeBarras")
+    public ResponseEntity<List<BoletoDTO>> getCodigoDeBarras(@RequestParam("cartao") String cartao) throws DataNotFoundException {
+        List<BoletoDTO> boletoDTO = unimedService.getCodigoDeBarras(cartao);
+        if (ObjectUtils.isEmpty(boletoDTO)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(boletoDTO);
+    }
+
+
 
 }

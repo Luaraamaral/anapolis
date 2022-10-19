@@ -75,4 +75,9 @@ public class UnimedService {
     public EmailDTO getEmailByCpf(String cpf) throws DataNotFoundException {
         return dbConection.getEmailByCpf(cpf);
     }
+
+    public List<BoletoDTO> getCodigoDeBarras(String cartao) {
+        return dbConection.getCodigoDeBarras(cartao);
+    }
+
 }
