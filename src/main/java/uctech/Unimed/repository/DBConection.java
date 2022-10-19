@@ -146,7 +146,6 @@ public class DBConection {
             throw new DataNotFoundException("Boleto não encontrado");
         }
 
-
     }
 
 
@@ -199,39 +198,34 @@ public class DBConection {
         return new GuiaDTO((String) row[0], (String) row[1]);
     }
 
-    public List<EmailDTO> getEmailByCpf(String cpf) {
+    public EmailDTO getEmailByCpf(String cpf) throws DataNotFoundException {
 
         Query query = entityManager.createNativeQuery("select distinct " +
                 "       dbaunimed.f_formata_cartao_dig_num(b.uni_cod_respon,b.bnf_cod_cntrat_cart,b.bnf_cod,b.bnf_cod_depnte) AS cartao_benef," +
                 "       pe.pes_nom_comp NOME," +
                 "       dbaunimed.f_format_cnpj_cpf('CPF',dbaunimed.f_busca_doc_pessoa(pe.pes_cod,'CPF')) cpf," +
-                "       nvl(lower(pec.CON_DES_EMAIL),'Nenhum e-mail cadastrado') EMAIL," +
-                "       nvl(lower(pec.con_des_email_altern),'Nenhum e-mail cadastrado') EMAIL_ALTERNATIVO   " +
+                "       lower(pec.CON_DES_EMAIL) EMAIL," +
+                "       lower(pec.con_des_email_altern) EMAIL_ALTERNATIVO   " +
                 "             " +
                 "  from dbaunimed.pessoa               pe," +
                 "       dbaunimed.bnfrio               b," +
                 "       dbaunimed.pessoa_end_contat    pec" +
                 " where pec.pes_cod = pe.pes_cod" +
                 "       and pec.pes_cod = b.bnf_cod_pessoa " +
+                "       and b.bnf_cod_pessoa = pe.pes_cod" +
                 "       and pec.end_ind = 1" +
+                "       and dbaunimed.k_geral.F_VERIF_NULL(pec.CON_DES_EMAIL) is not null" +
                 "       and dbaunimed.f_busca_doc_pessoa(pe.pes_cod,'CPF') = '" + cpf + "'");
 
 
-        List<Object[]> rows = query.getResultList();
+        try {
+            Object[] row = (Object[]) query.getSingleResult();
+            return new EmailDTO((String) row[0], (String) row[1], (String) row[2], (String) row[3], (String) row[4]);
 
-        List<EmailDTO> list = new ArrayList<>();
-
-        for (Object[] obj : rows) {
-            list.add(new EmailDTO(
-                    (String) obj[0],
-                    (String) obj[1],
-                    (String) obj[2],
-                    (String) obj[3],
-                    (String) obj[4]
-
-            ));
+        } catch (Exception e) {
+            throw new DataNotFoundException("Email não encontrado");
         }
 
-        return list;
     }
 }
+

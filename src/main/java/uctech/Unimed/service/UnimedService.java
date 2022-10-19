@@ -72,7 +72,7 @@ public class UnimedService {
         return dbConection.getStatusGuia(numeroGuia);
     }
 
-    public List<EmailDTO> getEmailByCpf(String cpf) {
+    public EmailDTO getEmailByCpf(String cpf) throws DataNotFoundException {
         return dbConection.getEmailByCpf(cpf);
     }
 }

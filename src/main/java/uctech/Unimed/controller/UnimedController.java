@@ -53,17 +53,9 @@ public class UnimedController {
         return ResponseEntity.ok(guiaDTO);
     }
 
-//    @GetMapping("/getPDF")
-//    public void downloadPDFReport(HttpServletResponse response) throws IOException {
-//        response.addHeader("Content-Type", "application/force-download");
-//        response.addHeader("Content-Disposition", "attachment; filename=\"boleto.pdf\"");
-//
-//        unimedService.buscaPdfBaseSamba("01787580010506007", response);
-//    }
-
     @GetMapping("/getEmail")
-    public ResponseEntity<List<EmailDTO>> getEmailByCpf(@RequestParam("cpf") String cpf) {
-        List<EmailDTO> emailDTO = unimedService.getEmailByCpf(cpf);
+    public ResponseEntity<EmailDTO> getEmailByCpf(@RequestParam("cpf") String cpf) throws DataNotFoundException {
+        EmailDTO emailDTO = unimedService.getEmailByCpf(cpf);
         if (ObjectUtils.isEmpty(emailDTO)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
