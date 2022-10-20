@@ -146,6 +146,7 @@ public class DBConection {
             throw new DataNotFoundException("Boleto não encontrado");
         }
 
+
     }
 
 
@@ -204,6 +205,28 @@ public class DBConection {
                 "       and pec.end_ind = 1" +
                 "       and dbaunimed.k_geral.F_VERIF_NULL(pec.CON_DES_EMAIL) is not null" +
                 "       and dbaunimed.f_busca_doc_pessoa(pe.pes_cod,'CPF') = '" + cpf + "'");
+
+
+        try {
+            Object[] row = (Object[]) query.getSingleResult();
+            return new EmailDTO((String) row[0], (String) row[1], (String) row[2], (String) row[3], (String) row[4]);
+
+        } catch (Exception e) {
+            throw new DataNotFoundException("Email não encontrado");
+        }
+
+    }
+
+    public EmailDTO getImpostoRenda(String cpf) throws DataNotFoundException {
+
+        Query query = entityManager.createNativeQuery("select p.ano, p.cpf_titular, p.*" +
+                " from dbaunimed.v_demonstrativo_ir_pago p" +
+                " where not exists" +
+                " (select 1" +
+                " from dbaunimed.param_valor pv" +
+                " WHERE pv.parsi_cod = rpad('CF_BLOQUE_ANO_DEMONS_IR_WEB', 45)" +
+                " AND TRIM(pv.prval_des_val) = p.ano)" +
+                " and p.cpf_titular = 29597099187");
 
 
         try {

@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 public class UnimedService {
 
-    private static final String PATH_SERVER = "X:/0001509039-1.PDF";
+    private static final String PATH_SERVER = "X:/0001270262-1.PDF";
     @Autowired
     private DBConection dbConection;
 
@@ -47,12 +47,13 @@ public class UnimedService {
     public void buscaPdfBaseSamba(String cartaoTitular, HttpServletResponse response) throws IOException, DataNotFoundException {
 
         BoletoPathDTO boletoPath = dbConection.getDadosBoletoPendente(cartaoTitular);
-
         String path = boletoPath.getPath();
+        String pdfName = boletoPath.getFileName();
+        String pdfURL = "X:/"+pdfName;
         path = path.replace(".\\", "");
         path = path.replace("\\", "/");
 
-        File file = new File(PATH_SERVER);
+        File file = new File(pdfURL);
 
         PDDocument document = PDDocument.load(file);
 
