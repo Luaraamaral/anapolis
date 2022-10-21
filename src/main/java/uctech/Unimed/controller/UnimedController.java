@@ -5,18 +5,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uctech.Unimed.dtos.BeneficiarioDTO;
-import uctech.Unimed.dtos.BoletoDTO;
-import uctech.Unimed.dtos.EmailDTO;
-import uctech.Unimed.dtos.GuiaDTO;
+import org.springframework.web.servlet.ModelAndView;
+import uctech.Unimed.dtos.*;
 import uctech.Unimed.exception.DataNotFoundException;
 import uctech.Unimed.repository.DBConection;
 import uctech.Unimed.service.UnimedService;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -30,11 +32,14 @@ public class UnimedController {
 
     @GetMapping("/getBeneficiario")
     public ResponseEntity<List<BeneficiarioDTO>> getBeneficiario(@RequestParam("cpfOrCard") String cpfOrCard) {
+        BeneficiarioDTO dto = new BeneficiarioDTO();
         List<BeneficiarioDTO> beneficiarios = unimedService.getBeneficiarioByCpfOrCarteirinha(cpfOrCard);
         if (ObjectUtils.isEmpty(beneficiarios)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        System.out.println(dto.getNome());
         return ResponseEntity.ok(beneficiarios);
+
     }
 
     @GetMapping("/getBoletosAbertos")
@@ -72,7 +77,4 @@ public class UnimedController {
         }
         return ResponseEntity.ok(boletoDTO);
     }
-
-
-
 }

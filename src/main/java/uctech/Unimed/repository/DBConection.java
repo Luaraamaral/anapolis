@@ -5,9 +5,11 @@ import org.springframework.util.ObjectUtils;
 import uctech.Unimed.dtos.*;
 import uctech.Unimed.exception.DataNotFoundException;
 
+import javax.persistence.Column;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Repository
+@Transactional
 public class DBConection {
 
     @PersistenceContext
@@ -217,7 +220,7 @@ public class DBConection {
 
     }
 
-    public EmailDTO getImpostoRenda(String cpf) throws DataNotFoundException {
+    /*public ImpostoRendaDTO getImpostoRenda(String cpf) throws DataNotFoundException {
 
         Query query = entityManager.createNativeQuery("select p.ano, p.cpf_titular, p.*" +
                 " from dbaunimed.v_demonstrativo_ir_pago p" +
@@ -226,17 +229,16 @@ public class DBConection {
                 " from dbaunimed.param_valor pv" +
                 " WHERE pv.parsi_cod = rpad('CF_BLOQUE_ANO_DEMONS_IR_WEB', 45)" +
                 " AND TRIM(pv.prval_des_val) = p.ano)" +
-                " and p.cpf_titular = 29597099187");
-
+                " and p.cpf_titular = '" + cpf + "'");
 
         try {
             Object[] row = (Object[]) query.getSingleResult();
-            return new EmailDTO((String) row[0], (String) row[1], (String) row[2], (String) row[3], (String) row[4]);
+            return new ImpostoRendaDTO((String) row[0], (String) row[1], (String) row[2], (String) row[3], (String) row[4]);
 
         } catch (Exception e) {
-            throw new DataNotFoundException("Email não encontrado");
+            throw new DataNotFoundException("");
         }
 
-    }
+    }*/
 }
 
