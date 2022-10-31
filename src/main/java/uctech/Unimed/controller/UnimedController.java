@@ -1,13 +1,11 @@
 package uctech.Unimed.controller;
 
+import io.swagger.models.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import uctech.Unimed.dtos.*;
 import uctech.Unimed.exception.DataNotFoundException;
@@ -20,8 +18,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-
 @RestController
+@CrossOrigin("*")
 public class UnimedController {
 
     @Autowired
@@ -32,14 +30,11 @@ public class UnimedController {
 
     @GetMapping("/getBeneficiario")
     public ResponseEntity<List<BeneficiarioDTO>> getBeneficiario(@RequestParam("cpfOrCard") String cpfOrCard) {
-        BeneficiarioDTO dto = new BeneficiarioDTO();
         List<BeneficiarioDTO> beneficiarios = unimedService.getBeneficiarioByCpfOrCarteirinha(cpfOrCard);
         if (ObjectUtils.isEmpty(beneficiarios)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        System.out.println(dto.getNome());
         return ResponseEntity.ok(beneficiarios);
-
     }
 
     @GetMapping("/getBoletosAbertos")
@@ -76,5 +71,41 @@ public class UnimedController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         return ResponseEntity.ok(boletoDTO);
+    }
+    @GetMapping(value = "/imposto/{cpfOrCartao}")
+    public ModelAndView listarData(@PathVariable("cpfOrCartao") String cpfOrCartao){
+        ModelAndView andView = new ModelAndView("impostoModel");
+        return andView;
+    }
+    @GetMapping("/getBeneficiarioSolicitacao")
+    public ResponseEntity<BeneficiarioSolicitacaoDTO> getBeneficiarioSolicitacao (@RequestParam("cod") String cod) throws DataNotFoundException {
+        BeneficiarioSolicitacaoDTO beneficiarioSolicitacaoDTO = dbConection.getBeneficiarioSolicitacao(cod);
+        if (ObjectUtils.isEmpty(beneficiarioSolicitacaoDTO)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(beneficiarioSolicitacaoDTO);
+    }
+
+    @GetMapping("/getComplementoSolicitacao")
+    public ResponseEntity<List<ComplementoSolicitacaoDTO>> getComplementoSolicitacao (@RequestParam("cod") String cod) throws DataNotFoundException {
+        List<ComplementoSolicitacaoDTO> complementoSolicitacaoDTO = dbConection.getComplementoSolicitacao(cod);
+        if (ObjectUtils.isEmpty(complementoSolicitacaoDTO)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(complementoSolicitacaoDTO);
+    }
+
+    @GetMapping("/getObservacaoSolicitacao")
+    public ResponseEntity<ObservacaoSolicitacaoDTO> getObservacaoSolicitacao (@RequestParam("cod") String cod) throws DataNotFoundException {
+        ObservacaoSolicitacaoDTO observacaoSolicitacaoDTO = dbConection.getObservacaoSolicitacao(cod);
+        if (ObjectUtils.isEmpty(observacaoSolicitacaoDTO)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(observacaoSolicitacaoDTO);
+    }
+    @GetMapping(value = "/lembrete/{card}")
+    public ModelAndView Lembrete(@PathVariable("card") String card){
+        ModelAndView andView = new ModelAndView("LembreteSolicitacao.html");
+        return andView;
     }
 }
