@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class UnimedService {
@@ -49,7 +50,7 @@ public class UnimedService {
         BoletoPathDTO boletoPath = dbConection.getDadosBoletoPendente(cartaoTitular);
         String path = boletoPath.getPath();
         String pdfName = boletoPath.getFileName();
-        String pdfURL = "X:/"+pdfName;
+        String pdfURL = "X:/" + pdfName;
         path = path.replace(".\\", "");
         path = path.replace("\\", "/");
 
@@ -81,4 +82,15 @@ public class UnimedService {
         return dbConection.getCodigoDeBarras(cartao);
     }
 
+    public BeneficiarioSolicitacaoDTO getBeneficiarioSolicitacao (String cod) throws DataNotFoundException {
+        return dbConection.getBeneficiarioSolicitacao(cod);
+    }
+
+    public List<ComplementoSolicitacaoDTO> getComplementoSolicitacao (String cod) throws DataNotFoundException {
+        return dbConection.getComplementoSolicitacao(cod);
+    }
+
+    public ObservacaoSolicitacaoDTO getObservacaoSolicitacao (String cod) throws DataNotFoundException {
+        return dbConection.getObservacaoSolicitacao(cod);
+    }
 }
